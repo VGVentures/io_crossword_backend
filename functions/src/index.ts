@@ -31,6 +31,7 @@ export const generateClues = onFlow(
       limit: z.number().optional(),
       batches: z.number().optional(),
       sleepSeconds: z.number().optional(),
+      recoverySeconds: z.number().optional(),
     }),
     outputSchema: z.string(),
     authPolicy: noAuth(),
@@ -60,6 +61,15 @@ export const generateClues = onFlow(
           if (response.status === "rejected") {
             console.log("Error generating clues: ", response.reason);
             errors++;
+            if (response.reason.toString().includes("429")) {
+              if (inputs.recoverySeconds) {
+                console.log(
+                  `Sleeping for ${inputs.recoverySeconds} seconds due to rate limiting`,
+                  iterationCount
+                );
+                sleep(inputs.recoverySeconds);
+              }
+            }
           } else {
             try {
               const llmResponse = response.value.text();
@@ -98,6 +108,7 @@ export const generateCluesWithoutGenkit = onFlow(
       limit: z.number().optional(),
       batches: z.number().optional(),
       sleepSeconds: z.number().optional(),
+      recoverySeconds: z.number().optional(),
     }),
     outputSchema: z.string(),
     authPolicy: noAuth(),
@@ -127,6 +138,15 @@ export const generateCluesWithoutGenkit = onFlow(
           if (response.status === "rejected") {
             console.log("Error generating clues: ", response.reason);
             errors++;
+            if (response.reason.toString().includes("429")) {
+              if (inputs.recoverySeconds) {
+                console.log(
+                  `Sleeping for ${inputs.recoverySeconds} seconds due to rate limiting`,
+                  iterationCount
+                );
+                sleep(inputs.recoverySeconds);
+              }
+            }
           } else {
             try {
               const llmResponse = response.value.response.text();
@@ -165,6 +185,7 @@ export const selectClue = onFlow(
       limit: z.number().optional(),
       batches: z.number().optional(),
       sleepSeconds: z.number().optional(),
+      recoverySeconds: z.number().optional(),
     }),
     outputSchema: z.string(),
     authPolicy: noAuth(),
@@ -201,6 +222,15 @@ export const selectClue = onFlow(
           if (response.status === "rejected") {
             console.log("Error selecting clue: ", response.reason);
             errors++;
+            if (response.reason.toString().includes("429")) {
+              if (inputs.recoverySeconds) {
+                console.log(
+                  `Sleeping for ${inputs.recoverySeconds} seconds due to rate limiting`,
+                  iterationCount
+                );
+                sleep(inputs.recoverySeconds);
+              }
+            }
           } else {
             try {
               const llmResponse = response.value.text();
@@ -231,7 +261,7 @@ export const selectClue = onFlow(
   }
 );
 
-export const seedDatabase = onRequest(async (req, res) => {
+export const seedWords = onRequest(async (req, res) => {
   try {
     const db = getFirestore();
     for (const {word} of words) {
