@@ -19,6 +19,7 @@ module.exports = {
   },
   ignorePatterns: [
     "/lib/**/*", // Ignore built files.
+    "/src/clues.ts", // Ignore clues file.
   ],
   plugins: ["@typescript-eslint", "import"],
   rules: {
