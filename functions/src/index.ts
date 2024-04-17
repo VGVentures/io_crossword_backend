@@ -408,46 +408,52 @@ export const selectClueWithoutGenkit = onFlow(
   }
 );
 
-export const seedClues = onRequest(async (req, res) => {
-  try {
-    const db = getFirestore();
-    const promises: Promise<FirebaseFirestore.WriteResult>[] = [];
-    for (const {word, clue1, clue2, clue3} of wordsAndClues) {
-      const cluesCopy = [clue1.valueOf(), clue2.valueOf(), clue3.valueOf()];
-      const clues = req.query.onlyWords ? [] : cluesCopy;
-      promises.push(
-        db.collection("words").doc(word).set({clues}, {merge: true})
-      );
+export const seedClues = onRequest(
+  {timeoutSeconds: 600, memory: "4GiB"},
+  async (req, res) => {
+    try {
+      const db = getFirestore();
+      const promises: Promise<FirebaseFirestore.WriteResult>[] = [];
+      for (const {word, clue1, clue2, clue3} of wordsAndClues) {
+        const cluesCopy = [clue1.valueOf(), clue2.valueOf(), clue3.valueOf()];
+        const clues = req.query.onlyWords ? [] : cluesCopy;
+        promises.push(
+          db.collection("words").doc(word).set({clues}, {merge: true})
+        );
+      }
+      await Promise.allSettled(promises);
+      res.status(200).send("Words added to Firestore!");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error seeding database");
     }
-    await Promise.allSettled(promises);
-    res.status(200).send("Words added to Firestore!");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Error seeding database");
   }
-});
+);
 
-export const getHint = onRequest(async (req, res) => {
-  const {
-    word,
-    question,
-    context = [],
-  }: {word: string; question: string; context: string[]} = req.body;
-  const prompt = `I am solving a crossword puzzle and you are a helpful agent that can answer only yes or no questions to assist me in guessing what the word is I am trying to identify for a given clue. Crossword words can be subjective and use plays on words so be liberal with your answers meaning if you think saying 'yes' will help me guess the word even if technically the answer is 'no', say 'yes'. If you think saying 'no' will help me guess the word even if technically the answer is 'yes', say 'no'. If you think saying 'yes' or 'no' will not help me guess the word even if technically the answer is 'yes' or 'no', say 'notApplicable'. The word I am trying to guess is "${word}", and the question I've been given is "${question}". The questions I've been asked so far with their corresponding answers are: ${context.join(
-    ", "
-  )}.`;
-  try {
-    const key = process.env.GOOGLE_API_KEY as string;
-    const genAI = new GoogleGenerativeAI(key);
-    const geminiModel = process.env.GEMINI_MODEL as string;
-    const model = genAI.getGenerativeModel({model: geminiModel});
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
-    res.status(200).send({
-      answer: response,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Error seeding database");
+export const getHint = onRequest(
+  {timeoutSeconds: 300, memory: "1GiB"},
+  async (req, res) => {
+    const {
+      word,
+      question,
+      context = [],
+    }: {word: string; question: string; context: string[]} = req.body;
+    const prompt = `I am solving a crossword puzzle and you are a helpful agent that can answer only yes or no questions to assist me in guessing what the word is I am trying to identify for a given clue. Crossword words can be subjective and use plays on words so be liberal with your answers meaning if you think saying 'yes' will help me guess the word even if technically the answer is 'no', say 'yes'. If you think saying 'no' will help me guess the word even if technically the answer is 'yes', say 'no'. If you think saying 'yes' or 'no' will not help me guess the word even if technically the answer is 'yes' or 'no', say 'notApplicable'. The word I am trying to guess is "${word}", and the question I've been given is "${question}". The questions I've been asked so far with their corresponding answers are: ${context.join(
+      ", "
+    )}.`;
+    try {
+      const key = process.env.GOOGLE_API_KEY as string;
+      const genAI = new GoogleGenerativeAI(key);
+      const geminiModel = process.env.GEMINI_MODEL as string;
+      const model = genAI.getGenerativeModel({model: geminiModel});
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
+      res.status(200).send({
+        answer: response,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error seeding database");
+    }
   }
-});
+);
