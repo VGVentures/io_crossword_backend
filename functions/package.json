@@ -1,9 +1,9 @@
 {
   "main": "lib/index.js",
   "scripts": {
-    "start": "npm run shell",
+    "start": "node lib/index.js",
     "compile": "tsc",
-    "build": "tsc",
+    "build": "npm run build:clean && npm run compile",
     "build:clean": "rm -rf ./lib",
     "build:watch": "tsc --watch",
     "lint": "eslint --ext .ts .",
@@ -17,17 +17,17 @@
     "node": "18"
   },
   "dependencies": {
-    "@genkit-ai/ai": "^0.5.0-rc.2",
-    "@genkit-ai/core": "^0.5.0-rc.2",
-    "@genkit-ai/dotprompt": "^0.5.0-rc.2",
-    "@genkit-ai/firebase": "^0.5.0-rc.2",
-    "@genkit-ai/flow": "^0.5.0-rc.2",
-    "@genkit-ai/googleai": "^0.5.0-rc.2",
+    "@genkit-ai/ai": "^0.5.0-rc.3",
+    "@genkit-ai/core": "^0.5.0-rc.3",
+    "@genkit-ai/dotprompt": "^0.5.0-rc.3",
+    "@genkit-ai/firebase": "^0.5.0-rc.3",
+    "@genkit-ai/flow": "^0.5.0-rc.3",
+    "@genkit-ai/googleai": "^0.5.0-rc.3",
     "@google/generative-ai": "^0.5.0",
     "express": "^4.19.2",
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.3.1",
-    "genkit": "^0.5.0-rc.2",
+    "genkit": "^0.5.0-rc.3",
     "zod": "^3.22.4"
   },
   "devDependencies": {

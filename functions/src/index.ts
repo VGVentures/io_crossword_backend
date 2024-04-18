@@ -8,6 +8,7 @@ import config from "./genkit.config.js";
 import {initializeApp} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
 import {onRequest} from "firebase-functions/v2/https";
+import wordsWithoutClues from "./words";
 import wordsAndClues from "./clues";
 import {GenerateContentResult, GoogleGenerativeAI} from "@google/generative-ai";
 
@@ -46,27 +47,45 @@ export const generateClues = onFlow(
       batches: z.number().optional(),
       sleepSeconds: z.number().optional(),
       recoverySeconds: z.number().optional(),
+      genkit15: z.boolean().optional(),
     }),
     outputSchema: z.string(),
     authPolicy: noAuth(),
   },
   async (inputs) => {
+    const start = new Date().getTime();
     const limit = inputs.limit || 50;
     const batches = inputs.batches || DEFAULT_BATCH_SIZE;
     let iterationCount = 0;
     let errors = 0;
+    let otherErrors = 0;
+    let quotaErrors = 0;
+    let safetyErrors = 0;
     let successes = 0;
     let llmPromises: Promise<GenerateResponse<any>>[] = [];
     const firestoreUpdates: Promise<FirebaseFirestore.WriteResult>[] = [];
     const db = getFirestore();
-    for (const {word} of wordsAndClues) {
+    for (const {word} of wordsWithoutClues) {
       iterationCount++;
       if (iterationCount > limit) {
-        console.log("Limit reached: ", iterationCount);
+        break;
       }
       const prompt = inputs.prompt + word;
+      const genkitModel = inputs.genkit15
+        ? {
+            name: "googleai/gemini-1.5-pro-latest",
+            info: {
+              label: "Google AI - Gemini 1.5 Pro",
+              supports: {
+                multiturn: true,
+                media: true,
+                tools: true,
+              },
+            },
+          }
+        : geminiPro;
       const llmPromise = generate({
-        model: geminiPro,
+        model: genkitModel,
         prompt: prompt,
       });
       llmPromises.push(llmPromise);
@@ -77,6 +96,7 @@ export const generateClues = onFlow(
             console.log("Error generating clues: ", response.reason);
             errors++;
             if (response.reason.toString().includes("429")) {
+              quotaErrors++;
               const recoverySeconds =
                 inputs.recoverySeconds || DEFAULT_RECOVERY_SECONDS;
               console.log(
@@ -84,6 +104,12 @@ export const generateClues = onFlow(
                 iterationCount
               );
               sleep(recoverySeconds);
+            } else if (
+              response.reason.toString().includes("FAILED_PRECONDITION")
+            ) {
+              safetyErrors++;
+            } else {
+              otherErrors++;
             }
           } else {
             try {
@@ -100,7 +126,9 @@ export const generateClues = onFlow(
             }
           }
         }
-        console.log(`Successes: ${successes}, Errors: ${errors}`);
+        console.log(
+          `Successes: ${successes}, Errors: ${errors} (Quota: ${quotaErrors}, Safety: ${safetyErrors}, Other: ${otherErrors})`
+        );
         if (inputs.sleepSeconds) {
           console.log(
             `Sleeping for ${inputs.sleepSeconds} seconds after ${batches} iterations: `,
@@ -115,8 +143,11 @@ export const generateClues = onFlow(
       `Waiting for ${firestoreUpdates.length} Firestore updates to complete`
     );
     await Promise.allSettled(firestoreUpdates);
-    console.log(`Successes: ${successes}, Errors: ${errors}`);
-    return `Final: Successes: ${successes}, Errors: ${errors}`;
+    const elapsed = new Date().getTime() - start;
+    console.log(
+      `Final Successes: ${successes}, Errors: ${errors} (Quota: ${quotaErrors}, Safety: ${safetyErrors}, Other: ${otherErrors}), Elapsed time: ${elapsed} ms`
+    );
+    return `Successes: ${successes}, Errors: ${errors} (Quota: ${quotaErrors}, Safety: ${safetyErrors}, Other: ${otherErrors}), Elapsed time: ${elapsed} ms`;
   }
 );
 
