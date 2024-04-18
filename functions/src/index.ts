@@ -17,6 +17,17 @@ initializeApp({projectId: "io-crossword-dev"});
 
 const DEFAULT_BATCH_SIZE = 5;
 const DEFAULT_RECOVERY_SECONDS = 10;
+const gemini15Pro = {
+  name: "googleai/gemini-1.5-pro-latest",
+  info: {
+    label: "Google AI - Gemini 1.5 Pro",
+    supports: {
+      multiturn: true,
+      media: true,
+      tools: true,
+    },
+  },
+};
 
 const sleep = (seconds: number) => {
   const startTime = Date.now();
@@ -71,19 +82,7 @@ export const generateClues = onFlow(
         break;
       }
       const prompt = inputs.prompt + word;
-      const genkitModel = inputs.genkit15
-        ? {
-            name: "googleai/gemini-1.5-pro-latest",
-            info: {
-              label: "Google AI - Gemini 1.5 Pro",
-              supports: {
-                multiturn: true,
-                media: true,
-                tools: true,
-              },
-            },
-          }
-        : geminiPro;
+      const genkitModel = inputs.genkit15 ? gemini15Pro : geminiPro;
       const llmPromise = generate({
         model: genkitModel,
         prompt: prompt,
@@ -123,6 +122,7 @@ export const generateClues = onFlow(
             } catch (error) {
               console.log("Error: ", error);
               errors++;
+              otherErrors++;
             }
           }
         }
@@ -308,6 +308,7 @@ export const selectClue = onFlow(
             } catch (error) {
               console.log("Error: ", error);
               errors++;
+              otherErrors++;
             }
           }
         }
@@ -485,6 +486,34 @@ export const getHint = onRequest(
     } catch (error) {
       console.error(error);
       res.status(500).send("Error seeding database");
+    }
+  }
+);
+
+export const getWords = onRequest(
+  {timeoutSeconds: 300, memory: "1GiB"},
+  async (req, res) => {
+    const topic = req.query.topic as string;
+    const prompt = `You are an expert crossword puzzle editor creating words and clues for a crossword puzzle game. The theme of the game is related to ${topic}. Generate a list of 50 uppercase words and corresponding clues that describe the word in a clever way that is accurate and understandable. The clues can be straight forward, fill in the blank sentences, historical references, or plays on words. * The clue can not include the word in it. * Limit the clue length to 200 characters or less. * The output should be only the clue, no other text. * Do not put periods at the end of clues. Format your output as an array that contains objects with each word and clue. For example: [{"word": "apple", "clue": "A fruit that grows on trees."}].`;
+    try {
+      const genAI = new GoogleGenerativeAI(
+        process.env.GOOGLE_API_KEY as string
+      );
+      const model = genAI.getGenerativeModel({model: "gemini-pro"});
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
+      console.log("response: ", response);
+      const db = getFirestore();
+      const wordArray: {word: string; clue: string}[] = parseResponse(response);
+      console.log("wordArray: ", wordArray);
+      for (const {word, clue} of wordArray) {
+        const docRef = db.collection("crossword").doc(word);
+        await docRef.set({clue}, {merge: true});
+      }
+      res.status(200).json(response);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error generating words");
     }
   }
 );
