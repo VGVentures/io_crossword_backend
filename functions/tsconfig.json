@@ -1,8 +1,6 @@
 {
   "compileOnSave": true,
-  "include": [
-    "src"
-  ],
+  "include": ["src", "test"],
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitReturns": true,
