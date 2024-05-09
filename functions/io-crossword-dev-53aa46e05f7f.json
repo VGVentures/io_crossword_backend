@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "io-crossword-dev",
+  "private_key_id": "53aa46e05f7f1fb9f64aa2cfad8992126d09b9a7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCRez+2aACb55bh\ns37UBlaaDNvRHnoJyaDupe5HHyMeLTKMFJMxMPZgUXBJddwkxhgdIidvyYQHOqQq\nIG22IMpRKfaHU3fXU1MChrZZd+V6GVj3gKY7vo+fXiA3QPkgzqBJLQJiAtVcft9A\npC0oNXDtxTd7VmcRJUn6Wh1dF+EQ3IqFD+ExTMZ7RfPsRRhOhcsvNzNpJL9VfupQ\nSGtzLNvP9Aj310GxBSZlbzdEVakq96mMBnHNRbCoSq9iOt4dlgxtOzHKpOrBQ7Si\nVWdoDplTcEuLsuUIRfS/BcHigSkmb2lTCKRnPbPP1rh52crJ8QXrfMAHgkeikujy\n1RNhQEV1AgMBAAECggEAAyxFw4h5TKQKNQofFqhOu16ukYGs30miIkbpeJDqyTt8\n+z0BEbCD5xu9T/39toWcYSttdJ8OmS8xcvqegxbi/ioJfYI8UKyU6vgdnZc1xUWa\nZaLxmKL7axEK1dUZTCzzOGw1YirapyW3zhTmlc1GTAprUZLTxxF0NBiwn7A6I6Av\n5fPMeXPK8arOozmhRL9sMLpdOEOnccYbRuyzQ5yluhoxGlTTZlxm6akFrEinWuor\nfGCLVffb5J968u8L9Qv9POvLZaUlW6jcFQphJSE3iq1qeryhzfvNODtKH5hU5zsm\noj+2t1FsnVQ9q4KqWwEX57ocCrnTa2okQp5U/eljQQKBgQDHPYAc7TtiP0iF7Nsi\nH0GTFJU1HSMicVuNVjXYhwuARXLg59cMlh9DfcAtfyjAWCqabqbbMh3TPyi+aj5j\nJ8Loz2a0ZwqB784nRmRbEVmXMcYuuWvfkSFlSBTxlSnOTFBF0gpcTFwszKLqMFcr\nleOkL36gTB/lwrmgEADKqBjzVQKBgQC67STedZR8n/kguPDTgxPLzCNgwQ8VuIfU\ne66gh4RGq1vNe/Kk1LnHQtUdQ1hXn7ORU25aBDB/2J7QNWFl35zsNqYilSfIr2QS\ncw10JuYdike4KiHgPiTYBTWnKvY33WZUhNU49xl4ZVzyuki7br4lRMJ16MWXXrFd\nbGAd83xJoQKBgFSq0+h2/8dOcTlIYA7uDWW9V3LMwQN//JHhUtyC9uY5nQnqO77D\nhOGfbK1o3h5u2Rvrbci0UWxV6LCSYZStbuyURmbfat2w1IBoL3lrtBDGPBva+/Zz\nrCdoLE5FPxDF6U7iZTi30mvPQmQWytRgy+4XqM3hy6RNzagxZMS6DnBJAoGAXtSw\nP6unCRKfcNpiUuvMvzdxO0S2Qm67ejDFBuu5T6Dfkf+vua+yEET3mUDxMIL0tmV9\nNm2prTJYX4i1QNmQ4sVWw3SoGkfgnPuBd8vEMnhUqjm1te3RA0ahUY2aG/1WTMqW\n4a96XHoQDZQ0EeK81GttvCO7GnAPyzWQDaHZDAECgYB7bdlKFOtWi5v4eGM5HPbL\noywi+hYDSjlVoO9PMgdlNUOFyly5STNCx6cjVT0olA11ui3qSN9+KJ33UlIL74H/\n7TlZ9kWmCFuC3Xv2k8lFTIx4v6TfL8EN8lbhMleSjcFfJ7Ky7FUbN/gxkrEMT79s\ny1lWJ6Ea5D7WbS/iAEXP4A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "io-crossword-dev@appspot.gserviceaccount.com",
+  "client_id": "112805556103218917378",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/io-crossword-dev%40appspot.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

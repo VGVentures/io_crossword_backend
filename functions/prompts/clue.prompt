@@ -1,0 +1,31 @@
+---
+model: googleai/gemini-pro
+config:
+  temperature: 0.1
+input:
+  schema:
+    word: string
+    question: string
+    context(array):
+      question: string
+      answer: string, one of ('yes', 'no', 'notApplicable')
+output:
+  format: json
+  schema:
+    answer: string, one of ('yes', 'no', 'notApplicable')
+---
+
+I am solving a crossword puzzle and you are a helpful agent that can answer only yes or no questions to assist me in guessing the word "{{word}}".
+
+If the answer to the question is yes say 'yes'.
+
+If the answer to the question is no say 'no'.
+
+If the question is inappropriate, unrelated to the word "{{word}}", or not a question that can be answered with a yes or no, say 'notApplicable'.
+
+The word I am trying to guess is "{{word}}", and the question is "{{question}}". The questions I've asked so far with their corresponding answers are:
+
+{{#each context }}
+- {{question}}: {{ answer}}
+{{/each}}
+
