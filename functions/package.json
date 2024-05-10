@@ -1,7 +1,7 @@
 {
-  "main": "lib/index.js",
+  "main": "lib/src/index.js",
   "scripts": {
-    "start": "node lib/index.js",
+    "start": "node lib/src/index.js",
     "compile": "tsc",
     "build": "npm run build:clean && npm run compile",
     "build:clean": "rm -rf ./lib",
@@ -11,11 +11,14 @@
     "shell": "npm run build && firebase functions:shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "mocha -r ts-node/register  --reporter spec 'test/**/*.ts' --exit"
+    "test": "npm run test-rules-emulators && npm run test-cloud-functions",
+    "test-rules": "mocha -r ts-node/register --reporter spec test/rules.ts",
+    "test-rules-emulators": "firebase emulators:exec --only firestore,storage 'npm run test-rules --exit'",
+    "test-cloud-functions": "mocha -r ts-node/register --reporter spec test/**/*.ts --exclude test/rules.ts --exit"
   },
   "name": "functions",
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "@genkit-ai/ai": "^0.5.0-rc.8",
@@ -32,6 +35,7 @@
     "zod": "^3.23.3"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.2",
     "@types/chai": "^4.3.16",
     "@types/mocha": "^10.0.6",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
