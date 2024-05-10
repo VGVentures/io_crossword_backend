@@ -6,6 +6,7 @@ import {
   RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {doc, setDoc, getDoc} from "firebase/firestore";
+import {ref, deleteObject, uploadBytes, getDownloadURL} from "firebase/storage";
 import "mocha";
 
 let testEnv: RulesTestEnvironment;
@@ -16,6 +17,11 @@ before(async () => {
       host: "localhost",
       port: 8080,
       rules: readFileSync("../firestore.rules", "utf8"),
+    },
+    storage: {
+      host: "localhost",
+      port: 9199,
+      rules: readFileSync("../storage.rules", "utf8"),
     },
   });
 });
@@ -125,5 +131,27 @@ describe("answers", () => {
         answer: "hello",
       })
     );
+  });
+});
+
+describe("storage", () => {
+  it("should only allow read, not write, if path is 'share'", async () => {
+    const noAuthStorage = testEnv.unauthenticatedContext().storage();
+    const blob = new Blob(["Hello, world!"], {type: "text/plain"});
+    const path = "share/example.txt";
+
+    const shareRef = ref(noAuthStorage, path);
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const storage = context.storage();
+      await uploadBytes(ref(storage, path), blob);
+    });
+
+    //can read object if path is 'share'
+    await assertSucceeds(getDownloadURL(shareRef));
+
+    //cannot write objects
+    await assertFails(uploadBytes(shareRef, blob));
+    await assertFails(deleteObject(shareRef));
   });
 });

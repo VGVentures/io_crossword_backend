@@ -11,9 +11,9 @@
     "shell": "npm run build && firebase functions:shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "npm run test-rules && npm run test-cloud-functions",
-    "test-firestore": "mocha -r ts-node/register --reporter spec test/rules.ts",
-    "test-rules": "firebase emulators:exec --only firestore 'npm run test-firestore --exit'",
+    "test": "npm run test-rules-emulators && npm run test-cloud-functions",
+    "test-rules": "mocha -r ts-node/register --reporter spec test/rules.ts",
+    "test-rules-emulators": "firebase emulators:exec --only firestore,storage 'npm run test-rules --exit'",
     "test-cloud-functions": "mocha -r ts-node/register --reporter spec test/**/*.ts --exclude test/rules.ts --exit"
   },
   "name": "functions",
