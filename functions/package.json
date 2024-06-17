@@ -21,18 +21,17 @@
     "node": "20"
   },
   "dependencies": {
-    "@genkit-ai/ai": "^0.5.0-rc.8",
-    "@genkit-ai/core": "^0.5.0-rc.8",
-    "@genkit-ai/dotprompt": "^0.5.0-rc.8",
-    "@genkit-ai/firebase": "^0.5.0-rc.8",
-    "@genkit-ai/flow": "^0.5.0-rc.8",
-    "@genkit-ai/googleai": "^0.5.0-rc.8",
-    "@google/generative-ai": "^0.10.0",
+    "@genkit-ai/ai": "^0.5.3",
+    "@genkit-ai/core": "^0.5.3",
+    "@genkit-ai/dotprompt": "^0.5.3",
+    "@genkit-ai/firebase": "^0.5.3",
+    "@genkit-ai/flow": "^0.5.3",
+    "@genkit-ai/googleai": "^0.5.3",
     "express": "^4.19.2",
-    "firebase-admin": "^12.1.0",
+    "firebase-admin": "^12.1.1",
     "firebase-functions": "^5.0.1",
-    "genkit": "^0.5.0-rc.8",
-    "zod": "^3.23.3"
+    "genkit": "^0.5.3",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.2",

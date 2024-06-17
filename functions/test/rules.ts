@@ -147,10 +147,10 @@ describe("storage", () => {
       await uploadBytes(ref(storage, path), blob);
     });
 
-    //can read object if path is 'share'
+    // can read object if path is 'share'
     await assertSucceeds(getDownloadURL(shareRef));
 
-    //cannot write objects
+    // cannot write objects
     await assertFails(uploadBytes(shareRef, blob));
     await assertFails(deleteObject(shareRef));
   });

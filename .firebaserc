@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "io-crossword-dev"
+    "default": "io-crossword-dev",
+    "production": "io-crossword"
   }
 }

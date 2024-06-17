@@ -1,15 +1,20 @@
-import {initializeGenkit} from "@genkit-ai/core";
+import {configureGenkit} from "@genkit-ai/core";
+import {firebase} from "@genkit-ai/firebase";
+import {googleAI} from "@genkit-ai/googleai";
 import {firebaseAuth} from "@genkit-ai/firebase/auth";
 import {onFlow} from "@genkit-ai/firebase/functions";
 import * as z from "zod";
-import config from "./genkit.config";
 import {initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import {onDocumentUpdated} from "firebase-functions/v2/firestore";
 import {prompt} from "@genkit-ai/dotprompt";
 
-initializeGenkit(config);
-initializeApp({projectId: "io-crossword-dev"});
+configureGenkit({
+  plugins: [firebase(), googleAI({apiVersion: "v1beta"})],
+  logLevel: "debug",
+  enableTracingAndMetrics: true,
+});
+initializeApp();
 
 const getHintSchema = z.object({
   word: z.string(),
