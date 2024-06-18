@@ -7,10 +7,10 @@ import * as z from "zod";
 import {initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import {onDocumentUpdated} from "firebase-functions/v2/firestore";
-import {prompt} from "@genkit-ai/dotprompt";
+import {dotprompt, prompt} from "@genkit-ai/dotprompt";
 
 configureGenkit({
-  plugins: [firebase(), googleAI({apiVersion: "v1beta"})],
+  plugins: [firebase(), googleAI({apiVersion: "v1beta"}), dotprompt()],
   logLevel: "debug",
   enableTracingAndMetrics: true,
 });
