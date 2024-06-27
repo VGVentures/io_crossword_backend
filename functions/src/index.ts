@@ -6,7 +6,7 @@ import {onFlow} from "@genkit-ai/firebase/functions";
 import * as z from "zod";
 import {initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
-import {onDocumentUpdated} from "firebase-functions/v2/firestore";
+import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import {dotprompt, prompt} from "@genkit-ai/dotprompt";
 
 configureGenkit({
@@ -48,28 +48,24 @@ export const getHintKit = onFlow(
   }
 );
 
-export const resetGame = onDocumentUpdated(
-  "boardInfo/solvedWordsCount",
+export const resetGame = onDocumentCreated(
+  "solvedWords/{docId}",
   async (event) => {
     try {
-      const data = event.data?.after.data();
-      const previousData = event.data?.before.data();
-
-      if (data?.value == previousData?.value) {
-        return null;
-      }
-
       const db = getFirestore();
+
+      const solvedWordsCollection = db.collection("solvedWords");
+      const solvedWordsSnapshot = await solvedWordsCollection.get();
+      const solvedWordsCount = solvedWordsSnapshot.size;
 
       const collectionRef = db.collection("boardInfo");
 
       const totalWordsCountDocument = collectionRef.doc("totalWordsCount");
       const totalWordsCountSnapshot = await totalWordsCountDocument.get();
 
-      const numberOfWordsSolved = data?.value;
       const totalWordsCount = totalWordsCountSnapshot.data()?.value;
 
-      if (numberOfWordsSolved >= totalWordsCount) {
+      if (solvedWordsCount >= totalWordsCount) {
         const gameStatusDocument = collectionRef.doc("gameStatus");
         await gameStatusDocument.update({
           value: "reset_in_progress",
@@ -88,12 +84,12 @@ export const resetGame = onDocumentUpdated(
           value: "in_progress",
         });
 
-        return event.data?.after.ref.set(
-          {
-            value: 0,
-          },
-          {merge: true}
-        );
+        const snapshot = await collectionRef.get();
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+        return batch.commit();
       }
 
       return null;
@@ -103,6 +99,7 @@ export const resetGame = onDocumentUpdated(
     }
   }
 );
+
 
 const resetWords = async () => {
   const db = getFirestore();

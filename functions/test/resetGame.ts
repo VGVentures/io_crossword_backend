@@ -34,10 +34,10 @@ describe("resetGame", () => {
 
     const solvedWordsCountSnapshot = admin
       .firestore()
-      .doc("boardInfo/solvedWordsCount")
+      .collection("solvedWords")
       .get();
     let solvedWordsCountDocument = await solvedWordsCountSnapshot;
-    const solvedWordsCountStart = solvedWordsCountDocument.data()?.value;
+    const solvedWordsCountStart = solvedWordsCountDocument.size;
     previousWordsCount.value = solvedWordsCountStart;
     updatedWordsCount.value = solvedWordsCountStart + 1;
 
@@ -62,14 +62,14 @@ describe("resetGame", () => {
 
     // since the number of solved words is less than the total words count, the function should not have reset the solved words count to 0
     solvedWordsCountDocument = await solvedWordsCountSnapshot;
-    const solvedWordsCountEnd = solvedWordsCountDocument.data()?.value;
+    const solvedWordsCountEnd = solvedWordsCountDocument.size;
     console.log("solvedWordsCountEnd", solvedWordsCountEnd);
     expect(solvedWordsCountEnd).to.equal(solvedWordsCountStart);
 
     // the gamesCompletedCount should not have been incremented
-    const gamesCompletedCountEnd = (
-      await gamesCompletedCountDocument.get()
-    ).data()?.value;
+    const gamesCompletedCountEnd = admin
+      .firestore()
+      .collection("solvedWords");
     expect(gamesCompletedCountEnd).to.equal(gamesCompletedCountStart);
   }).timeout(10000);
 
@@ -103,11 +103,12 @@ describe("resetGame", () => {
     await wrapped({data: change});
 
     // since the number of solved words is equal or greater than the total words count, the function should have reset the solved words count to 0
-    const solvedWordsCount = await admin
+    const solvedWordsCountSnapshot = await admin
       .firestore()
-      .doc("boardInfo/solvedWordsCount")
+      .collection("solvedWords")
       .get();
-    expect(solvedWordsCount.data()?.value).to.equal(0);
+    const solvedWordsCount = solvedWordsCountSnapshot.size;
+    expect(solvedWordsCount).to.equal(0);
 
     // the gamesCompletedCount should have been incremented by 1
     const gamesCompletedCountEnd = (
