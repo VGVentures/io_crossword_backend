@@ -121,6 +121,7 @@ const resetWords = async () => {
         answer: updatedAnswer,
         mascot: null,
         solvedTimestamp: null,
+        userId: null,
       };
     });
 
