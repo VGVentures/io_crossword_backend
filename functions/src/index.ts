@@ -58,21 +58,21 @@ export const resetGame = onDocumentCreated(
       const solvedWordsSnapshot = await solvedWordsCollection.get();
       const solvedWordsCount = solvedWordsSnapshot.size;
 
-      const collectionRef = db.collection("boardInfo");
+      const boardInfoCollection = db.collection("boardInfo");
 
-      const totalWordsCountDocument = collectionRef.doc("totalWordsCount");
+      const totalWordsCountDocument = boardInfoCollection.doc("totalWordsCount");
       const totalWordsCountSnapshot = await totalWordsCountDocument.get();
 
       const totalWordsCount = totalWordsCountSnapshot.data()?.value;
 
       if (solvedWordsCount >= totalWordsCount) {
-        const gameStatusDocument = collectionRef.doc("gameStatus");
+        const gameStatusDocument = boardInfoCollection.doc("gameStatus");
         await gameStatusDocument.update({
           value: "reset_in_progress",
         });
         await resetWords();
 
-        const gamesCompletedCountDocument = collectionRef.doc(
+        const gamesCompletedCountDocument = boardInfoCollection.doc(
           "gamesCompletedCount"
         );
 
@@ -84,7 +84,7 @@ export const resetGame = onDocumentCreated(
           value: "in_progress",
         });
 
-        const snapshot = await collectionRef.get();
+        const snapshot = await solvedWordsCollection.get();
         const batch = db.batch();
         snapshot.docs.forEach((doc) => {
           batch.delete(doc.ref);
