@@ -6,7 +6,7 @@ import {onFlow} from "@genkit-ai/firebase/functions";
 import * as z from "zod";
 import {initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
-import {onDocumentCreated} from "firebase-functions/v2/firestore";
+import {onDocumentUpdated, onDocumentCreated} from "firebase-functions/v2/firestore";
 import {dotprompt, prompt} from "@genkit-ai/dotprompt";
 
 configureGenkit({
@@ -55,41 +55,16 @@ export const resetGame = onDocumentCreated(
       const db = getFirestore();
 
       const solvedWordsCollection = db.collection("solvedWords");
-      const solvedWordsSnapshot = await solvedWordsCollection.get();
-      const solvedWordsCount = solvedWordsSnapshot.size;
+      const solvedWordsCount = await solvedWordsCollection.count().get();;
 
       const boardInfoCollection = db.collection("boardInfo");
-
       const totalWordsCountDocument = boardInfoCollection.doc("totalWordsCount");
       const totalWordsCountSnapshot = await totalWordsCountDocument.get();
 
       const totalWordsCount = totalWordsCountSnapshot.data()?.value;
 
       if (solvedWordsCount >= totalWordsCount) {
-        const gameStatusDocument = boardInfoCollection.doc("gameStatus");
-        await gameStatusDocument.update({
-          value: "reset_in_progress",
-        });
-        await resetWords();
-
-        const gamesCompletedCountDocument = boardInfoCollection.doc(
-          "gamesCompletedCount"
-        );
-
-        await gamesCompletedCountDocument.update({
-          value: FieldValue.increment(1),
-        });
-
-        await gameStatusDocument.update({
-          value: "in_progress",
-        });
-
-        const snapshot = await solvedWordsCollection.get();
-        const batch = db.batch();
-        snapshot.docs.forEach((doc) => {
-          batch.delete(doc.ref);
-        });
-        return batch.commit();
+        return await resetBoard();
       }
 
       return null;
@@ -100,6 +75,61 @@ export const resetGame = onDocumentCreated(
   }
 );
 
+
+export const adminResetGame = onDocumentUpdated(
+  "boardInfo/adminResetGame",
+  async (event) => {
+    try {
+      const value = event.data?.after.data()?.value;
+      const previousValue = event.data?.before.data()?.value;
+
+      if (value == previousValue) {
+        return null;
+      }
+
+      if (value === true) {
+        await resetBoard();
+        return event.data?.after.ref.set(
+          {value: false},
+        );
+      }
+
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+);
+
+
+const resetBoard = async () => {
+  const db = getFirestore();
+  const boardInfoCollection = db.collection("boardInfo");
+
+  const gameStatusDocument = boardInfoCollection.doc("gameStatus");
+  await gameStatusDocument.update({
+    value: "reset_in_progress",
+  });
+  await resetWords();
+
+  const gamesCompletedCountDocument = boardInfoCollection.doc(
+    "gamesCompletedCount"
+  );
+
+  await gamesCompletedCountDocument.update({
+    value: FieldValue.increment(1),
+  });
+
+  await gameStatusDocument.update({
+    value: "in_progress",
+  });
+
+  const solvedWordsCountDocument = boardInfoCollection.doc("solvedWordsCount");
+  return solvedWordsCountDocument.update({
+    value: 0,
+  });
+};
 
 const resetWords = async () => {
   const db = getFirestore();
@@ -118,6 +148,7 @@ const resetWords = async () => {
         answer: updatedAnswer,
         mascot: null,
         solvedTimestamp: null,
+        userId: null,
       };
     });
 
