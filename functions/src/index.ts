@@ -55,7 +55,8 @@ export const resetGame = onDocumentCreated(
       const db = getFirestore();
 
       const solvedWordsCollection = db.collection("solvedWords");
-      const solvedWordsCount = await solvedWordsCollection.count().get();;
+      const solvedWordsCountSnapshot = await solvedWordsCollection.count().get();
+      const solvedWordsCount = solvedWordsCountSnapshot.data().count;
 
       const boardInfoCollection = db.collection("boardInfo");
       const totalWordsCountDocument = boardInfoCollection.doc("totalWordsCount");
