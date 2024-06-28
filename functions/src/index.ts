@@ -125,6 +125,14 @@ const resetBoard = async () => {
     value: "in_progress",
   });
 
+  const solvedWordsCollection = db.collection("solvedWords");
+  const snapshot = await solvedWordsCollection.get();
+  const batch = db.batch();
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+  await batch.commit();
+
   const solvedWordsCountDocument = boardInfoCollection.doc("solvedWordsCount");
   return solvedWordsCountDocument.update({
     value: 0,
