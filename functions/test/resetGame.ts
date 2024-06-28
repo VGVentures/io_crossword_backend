@@ -7,14 +7,6 @@ import {expect} from "chai";
 import "mocha";
 
 let test: FeaturesList;
-const previousWordsCount = {
-  type: "solved_words_count",
-  value: 0,
-};
-const updatedWordsCount = {
-  type: "solved_words_count",
-  value: 0,
-};
 
 describe("resetGame", () => {
   before(async () => {
@@ -30,16 +22,14 @@ describe("resetGame", () => {
   });
 
   it("should not do anything if numberOfWordsSolved < totalWordsCount", async () => {
-    const wrapped = test.wrap(resetGame);
+    test.wrap(resetGame);
 
     const solvedWordsCountSnapshot = admin
       .firestore()
-      .doc("boardInfo/solvedWordsCount")
+      .collection("solvedWords")
       .get();
     let solvedWordsCountDocument = await solvedWordsCountSnapshot;
-    const solvedWordsCountStart = solvedWordsCountDocument.data()?.value;
-    previousWordsCount.value = solvedWordsCountStart;
-    updatedWordsCount.value = solvedWordsCountStart + 1;
+    const solvedWordsCountStart = solvedWordsCountDocument.size;
 
     const gamesCompletedCountDocument = admin
       .firestore()
@@ -48,21 +38,10 @@ describe("resetGame", () => {
       await gamesCompletedCountDocument.get()
     ).data()?.value;
 
-    const beforeSnap = test.firestore.makeDocumentSnapshot(
-      previousWordsCount,
-      "boardInfo/solvedWordsCount"
-    );
-    const afterSnap = test.firestore.makeDocumentSnapshot(
-      updatedWordsCount,
-      "boardInfo/solvedWordsCount"
-    );
-    const change = test.makeChange(beforeSnap, afterSnap);
-
-    await wrapped({data: change});
 
     // since the number of solved words is less than the total words count, the function should not have reset the solved words count to 0
     solvedWordsCountDocument = await solvedWordsCountSnapshot;
-    const solvedWordsCountEnd = solvedWordsCountDocument.data()?.value;
+    const solvedWordsCountEnd = solvedWordsCountDocument.size;
     console.log("solvedWordsCountEnd", solvedWordsCountEnd);
     expect(solvedWordsCountEnd).to.equal(solvedWordsCountStart);
 
@@ -74,14 +53,7 @@ describe("resetGame", () => {
   }).timeout(10000);
 
   it("should reset solvedWordsCount to 0 and increase gamesCompletedCount if numberOfWordsSolved >= totalWordsCount", async () => {
-    const wrapped = test.wrap(resetGame);
-
-    const totalWordsCountRef = admin
-      .firestore()
-      .doc("boardInfo/totalWordsCount");
-    const totalWordsCount = await totalWordsCountRef.get();
-    previousWordsCount.value = totalWordsCount.data()?.value - 1;
-    updatedWordsCount.value = totalWordsCount.data()?.value;
+    test.wrap(resetGame);
 
     const gamesCompletedCountDocument = admin
       .firestore()
@@ -90,24 +62,13 @@ describe("resetGame", () => {
       await gamesCompletedCountDocument.get()
     ).data()?.value;
 
-    const beforeSnap = test.firestore.makeDocumentSnapshot(
-      previousWordsCount,
-      "boardInfo/solvedWordsCount"
-    );
-    const afterSnap = test.firestore.makeDocumentSnapshot(
-      updatedWordsCount,
-      "boardInfo/solvedWordsCount"
-    );
-    const change = test.makeChange(beforeSnap, afterSnap);
-
-    await wrapped({data: change});
-
     // since the number of solved words is equal or greater than the total words count, the function should have reset the solved words count to 0
-    const solvedWordsCount = await admin
+    const solvedWordsCountSnapshot = await admin
       .firestore()
-      .doc("boardInfo/solvedWordsCount")
+      .collection("solvedWords")
       .get();
-    expect(solvedWordsCount.data()?.value).to.equal(0);
+    const solvedWordsCount = solvedWordsCountSnapshot.size;
+    expect(solvedWordsCount).to.equal(0);
 
     // the gamesCompletedCount should have been incremented by 1
     const gamesCompletedCountEnd = (

@@ -6,7 +6,7 @@ import {onFlow} from "@genkit-ai/firebase/functions";
 import * as z from "zod";
 import {initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
-import {onDocumentUpdated} from "firebase-functions/v2/firestore";
+import {onDocumentUpdated, onDocumentCreated} from "firebase-functions/v2/firestore";
 import {dotprompt, prompt} from "@genkit-ai/dotprompt";
 
 configureGenkit({
@@ -48,29 +48,28 @@ export const getHintKit = onFlow(
   }
 );
 
-export const resetGame = onDocumentUpdated(
-  "boardInfo/solvedWordsCount",
+export const resetGame = onDocumentCreated(
+  "solvedWords/{docId}",
   async (event) => {
     try {
-      const data = event.data?.after.data();
-      const previousData = event.data?.before.data();
-
-      if (data?.value == previousData?.value) {
-        return null;
-      }
-
       const db = getFirestore();
 
-      const boardInfoCollection = db.collection("boardInfo");
+      const solvedWordsCollection = db.collection("solvedWords");
+      const solvedWordsCount = await solvedWordsCollection.count().get();;
 
+      const boardInfoCollection = db.collection("boardInfo");
       const totalWordsCountDocument = boardInfoCollection.doc("totalWordsCount");
       const totalWordsCountSnapshot = await totalWordsCountDocument.get();
 
-      const numberOfWordsSolved = data?.value;
       const totalWordsCount = totalWordsCountSnapshot.data()?.value;
 
-      if (numberOfWordsSolved >= totalWordsCount) {
+      if (solvedWordsCount >= totalWordsCount) {
         return await resetBoard();
+      } else {
+        const solvedWordsCountDocument = boardInfoCollection.doc("solvedWordsCount");
+        await solvedWordsCountDocument.update({
+          value: FieldValue.increment(1),
+        });
       }
 
       return null;
@@ -130,6 +129,14 @@ const resetBoard = async () => {
   await gameStatusDocument.update({
     value: "in_progress",
   });
+
+  const solvedWordsCollection = db.collection("solvedWords");
+  const snapshot = await solvedWordsCollection.get();
+  const batch = db.batch();
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+  await batch.commit();
 
   const solvedWordsCountDocument = boardInfoCollection.doc("solvedWordsCount");
   return solvedWordsCountDocument.update({
