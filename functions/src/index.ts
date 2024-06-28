@@ -65,6 +65,11 @@ export const resetGame = onDocumentCreated(
 
       if (solvedWordsCount >= totalWordsCount) {
         return await resetBoard();
+      } else {
+        const solvedWordsCountDocument = boardInfoCollection.doc("solvedWordsCount");
+        await solvedWordsCountDocument.update({
+          value: FieldValue.increment(1),
+        });
       }
 
       return null;
