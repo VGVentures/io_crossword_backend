@@ -61,38 +61,42 @@ export const resetGame = onDocumentUpdated(
 
       const db = getFirestore();
 
-      const collectionRef = db.collection("boardInfo");
+      const boardInfoCollection = db.collection("boardInfo");
 
-      const totalWordsCountDocument = collectionRef.doc("totalWordsCount");
+      const totalWordsCountDocument = boardInfoCollection.doc("totalWordsCount");
       const totalWordsCountSnapshot = await totalWordsCountDocument.get();
 
       const numberOfWordsSolved = data?.value;
       const totalWordsCount = totalWordsCountSnapshot.data()?.value;
 
       if (numberOfWordsSolved >= totalWordsCount) {
-        const gameStatusDocument = collectionRef.doc("gameStatus");
-        await gameStatusDocument.update({
-          value: "reset_in_progress",
-        });
-        await resetWords();
+        return await resetBoard();
+      }
 
-        const gamesCompletedCountDocument = collectionRef.doc(
-          "gamesCompletedCount"
-        );
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+);
 
-        await gamesCompletedCountDocument.update({
-          value: FieldValue.increment(1),
-        });
 
-        await gameStatusDocument.update({
-          value: "in_progress",
-        });
+export const adminResetGame = onDocumentUpdated(
+  "boardInfo/adminResetGame",
+  async (event) => {
+    try {
+      const value = event.data?.after.data()?.value;
+      const previousValue = event.data?.before.data()?.value;
 
+      if (value == previousValue) {
+        return null;
+      }
+
+      if (value === true) {
+        await resetBoard();
         return event.data?.after.ref.set(
-          {
-            value: 0,
-          },
-          {merge: true}
+          {value: false},
         );
       }
 
@@ -103,6 +107,35 @@ export const resetGame = onDocumentUpdated(
     }
   }
 );
+
+
+const resetBoard = async () => {
+  const db = getFirestore();
+  const boardInfoCollection = db.collection("boardInfo");
+
+  const gameStatusDocument = boardInfoCollection.doc("gameStatus");
+  await gameStatusDocument.update({
+    value: "reset_in_progress",
+  });
+  await resetWords();
+
+  const gamesCompletedCountDocument = boardInfoCollection.doc(
+    "gamesCompletedCount"
+  );
+
+  await gamesCompletedCountDocument.update({
+    value: FieldValue.increment(1),
+  });
+
+  await gameStatusDocument.update({
+    value: "in_progress",
+  });
+
+  const solvedWordsCountDocument = boardInfoCollection.doc("solvedWordsCount");
+  return solvedWordsCountDocument.update({
+    value: 0,
+  });
+};
 
 const resetWords = async () => {
   const db = getFirestore();
